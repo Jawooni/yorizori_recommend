@@ -83,11 +83,11 @@ def filter_df(df_user_recipe_ratings):
 if __name__ =="__main__":
 
     recommend_userid = 'abcde123'
-    md = pd.read_csv('./yorizori/recipe_yorizori.csv')
-    user_rate_info2 = pd.read_csv('./yorizori/test2.csv') #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
-    user_search_ingredient = pd.read_csv('./yorizori/search_ingredient_log.csv')
-    user_search_recipe =  pd.read_csv('./yorizori/search_recipe_log.csv')
-    user_view_log =  pd.read_csv('./yorizori/test1.csv')
+    md = pd.read_csv('./data/recipe_yorizori.csv')
+    user_rate_info2 = pd.read_csv('./data/test2.csv') #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
+    user_search_ingredient = pd.read_csv('./data/search_ingredient_log.csv')
+    user_search_recipe =  pd.read_csv('./data/search_recipe_log.csv')
+    user_view_log =  pd.read_csv('./data/test1.csv')
 
     mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','level','time'],axis=1)
     user_rate_info2=user_rate_info2.drop('Unnamed: 3',axis=1)
