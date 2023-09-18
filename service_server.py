@@ -16,7 +16,7 @@ from surprise import Reader, Dataset, SVD, accuracy
 
 import warnings; warnings.simplefilter('ignore')
 
-from flask import Flask
+from flask import Flask, request, jsonify
 # Flask 애플리케이션을 생성합니다.
 app = Flask(__name__)
 
@@ -58,7 +58,7 @@ def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_r
     
     return user_history, recommendations#alpha
 
-
+# In[244]:
 @app.route('/recommend/<string:id>')
 def get_recipe_recommend(id):
 
@@ -70,6 +70,25 @@ def get_recipe_recommend(id):
     already_rated, predictions = recommend_recipe(df_predict, recommend_userid, mds, user_info, 50) 
     #예측행렬,예측하는유저id, 레시피테이블 데이터프레임, 유저별 로그 데이터프레임, 몇개추천할지
     return predictions['recipe_id'].to_list()
+
+# In[245]:
+@app.route('/template', methods=['POST'])
+def receive_templates():
+    try:
+        # JSON 데이터를 파싱하여 Python 데이터로 변환
+        templates = request.get_json()
+        
+        # templates를 이용한 원하는 작업 수행
+        #
+        #
+        #
+
+        # 결과를 JSON 형태로 응답
+        response_data = {'response': 'template successfully'}
+        return jsonify(response_data), 200
+    except Exception as e:
+        error_message = str(e)
+        return jsonify({'error': error_message}), 400
 
 # In[250]:
 if __name__ =="__main__":
