@@ -23,64 +23,128 @@ import warnings; warnings.simplefilter('ignore')
 def return_recipe_id(recipe_title):
     return md[md['recipe_title']==recipe_title]['recipe_id']
 
-def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_recommendations=5):
+def renewal_view_log_info(user_view_info):
+    tmp=user_view_info.groupby('user_token_id')['view_recipe_id'].value_counts().to_frame()
     
-    #현재는 index로 적용이 되어있으므로 user_id - 1을 해야함.
-   # user_row_number = user_id - 1 
-    target_user = df_user.index(user_id)
+    tmp2=tmp.swaplevel('user_token_id','view_recipe_id')
+    tmp2.rename(columns={'view_recipe_id':'count'},inplace=True)
 
-    # 최종적으로 만든 pred_df에서 사용자 index에 따라 데이터 정렬 -> 레시피 평점(나중엔 스코어) 높은 순으로 정렬 됌
-    sorted_user_predictions = df_svd_preds.iloc[target_user].sort_values(ascending=False)
+    user_view_log=tmp2.reset_index()
+    user_view_log.rename(columns={'view_recipe_id':'recipe_id'},inplace=True)
     
-    # 원본 평점 데이터에서 user id에 해당하는 데이터를 뽑아낸다. 
-    user_data = ori_ratings_df[ori_ratings_df.user_token_id == user_id]
-    #user_data.head(10)
+    return user_view_log
+
+def merge_category_view_log(user_view_info,recipe_category):
+    user_view=renewal_view_log_info(user_view_info)
+    user_view_log2.columns=['user_token_id','recipe_id']
     
-    # 위에서 뽑은 user_data와 원본 레시피 데이터를 합친다. 
-    user_history = user_data.merge(ori_recipe_df, on = 'recipe_id')
-    user_history.sort_values("values",axis=0, ascending=False)
+    view_category = pd.merge(user_view_log2,recipe_category)
     
-    # 원본 레시피들에서 사용자가 본 메뉴를 제외한 데이터를 추출
-    recommendations = ori_recipe_df[~ori_recipe_df['recipe_id'].isin(user_history['recipe_id'])]
+    tmp=view_category.groupby('user_token_id')['recipe_id'].value_counts().to_frame()
+    tmps = view_category.groupby('user_token_id')['category'].value_counts().to_frame()
+
+    tmp2=tmp.swaplevel('user_token_id','recipe_id')
+    tmp2.rename(columns={'recipe_id':'recipe_view_count'},inplace=True)
+
+    tmps2=tmps.swaplevel('user_token_id','category')
+    tmps2.rename(columns={'category':'category_view_count'},inplace=True)
+
+    user_recipe_view_log=tmp2.reset_index()
+    user_category_view_log=tmps2.reset_index()
     
-    alpha = pd.DataFrame(sorted_user_predictions).reset_index().rename(columns={'index':'recipe_id',target_user:'Predictions'})
-    alpha=alpha.astype({'recipe_id':'int'})
-    # 사용자의 평점이 높은 순으로 정렬된 데이터와 합친다. 
-    recommendations = recommendations.merge(alpha, on = 'recipe_id',how='left')
-                                            
-    # 컬럼 이름 바꾸고 정렬해서 return
-    recommendations = recommendations.rename(columns = {user_id: 'Predictions'}).sort_values('Predictions', ascending = False).iloc[:num_recommendations, :]
-                      
+    tts = user_category_view_log
+    tts['category_value']=(tts['category_view_count'] - tts['category_view_count'].min())/(tts['category_view_count'].max()-tts['category_view_count'].min())
     
-    return user_history, recommendations#alpha
+    thisplus2=pd.merge(tts,user_recipe_view_log,how='right').fillna(0)
+    
+    return thisplus2
+def renewal_user_rate_info(user_rate_info):
+    a=user_rate_info.groupby(['user_token_id','recipe_id'])['star_count'].mean().to_frame()
+    b=a.swaplevel('user_token_id','recipe_id')
+#b
+#tmp=user_view_log2.groupby('user_token_id')['view_recipe_id'].value_counts().to_frame()
+    user_rate_log=b.reset_index()
+    return user_rate_log
 
 
+def make_pivot_table(user_view_info,user_rate_info,recipe_category,index,column,value):
+
+    user_rate=renewal_user_rate_info(user_rate_info)
+    user_view=merge_category_view_log(user_view_info,recipe_category)
+    user_view=user_view.drop(['category'],axis=1)
+    user_view['recipe_view_count'] = (user_view['recipe_view_count'] - user_view['recipe_view_count'].min())/(user_view['recipe_view_count'].max()-user_view['recipe_view_count'].min())
+    
+    userview = user_view.drop(['category_view_count','category_value'],axis=1)
+    userview=userview.drop_duplicates(subset=['recipe_id','user_token_id'])
+    
+    a=user_view.groupby(['user_token_id','recipe_id'])['category_value'].mean().to_frame()
+    b=a.swaplevel('user_token_id','recipe_id')
+    b=b.reset_index()
+    
+    userview_value = pd.merge(b,userview,how='left')
+
+    thisplus=pd.merge(user_rate,userview_value,how='right').fillna(0)
+    thisplus['star_count'] = 0#(thisplus['star_count'] - thisplus['star_count'].min())/(thisplus['star_count'].max()-thisplus['star_count'].min())
+    
+    thisplus['values'] = ((thisplus['star_count']*3)+(thisplus['recipe_view_count']*5)+(thisplus['category_value']*10)).fillna(0.0000)
+    
+    thisplus.drop(['category_value'],axis=1)
+    #c=pd.merge(thisplus,b,how='left',on=['recipe_id','user_token_id']).fillna(0)
+    #c['values'] = ((c['star_count']*3)+(c['recipe_view_count']*5)+(c['category_value_y']*10)).fillna(0.0000)
+    df_user_recipe_ratings = thisplus.pivot( #사용자 평점 정보를 피벗테이블 형식으로 바꾸기
+    index=index,
+    columns=column,
+    values=value).fillna(0)
+    
+    nb=df_user_recipe_ratings.index.to_list()
+
+    return df_user_recipe_ratings ,thisplus,nb
+
+#df_user_recipe_ratings , 
+def filter_df(df_user_recipe_ratings):
+    mt=df_user_recipe_ratings.values
+
+    user_rating_mean = np.mean(mt, axis=1)
+
+    matrix_user_mean = mt-user_rating_mean.reshape(-1,1)
+
+    U,sigma, Vt = svds(matrix_user_mean, k=6)
+
+    sigma = np.diag(sigma)
+
+    svd_user_predicted_ratings = np.dot(np.dot(U,sigma),Vt)+user_rating_mean.reshape(-1,1)
+    df_svd_preds = pd.DataFrame(svd_user_predicted_ratings, columns = df_user_recipe_ratings.columns)
+
+    return df_svd_preds
 # In[250]:
 if __name__ =="__main__":
 
-    recommend_userid = 'abcde123'
+    #recommend_userid = 'abcde123'
     md = pd.read_csv('./yorizori/recipe_yorizori.csv')
-    
-    df_predict = pd.read_csv('./yorizori_predict_matrix.csv')
-    user_info = pd.read_csv('./yorizori_user_values.csv')
-    
-    f = open('./yorizori_user_index_info.txt','r')
-    df_user = f.readlines()
-    for i in range(len(df_user)):
-        df_user[i]=df_user[i].split("\n")[0]
-    
-
-    mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','user_token_id','reference_recipe','level','time'],axis=1)
-    
+    user_rate_info = pd.read_csv('./yorizori/user_comment.csv') #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
+    user_search_ingredient = pd.read_csv('./yorizori/search_ingredient_log.csv')
+    user_search_recipe =  pd.read_csv('./yorizori/search_recipe_log.csv')
+    user_view_log =  pd.read_csv('./yorizori/user_view_recipe_log.csv')
+    recipe_category = pd.read_csv('./yorizori/recipe_category.csv').drop(['category_id'],axis=1)
 
 
+    mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','level','time'],axis=1)
+    user_rate_info=user_rate_info.drop(['comment_id','created_time','updated_time','comment'],axis=1)
+    user_rate_info.columns =['star_count','user_token_id','recipe_id']
+    #user_rate_info2['recipe_id']=user_rate_info2['recipe_id'].astype('int')
+    user_view_log2=user_view_log.drop(['view_log_id','created_time'],axis=1)
 
-    #target_user = df_user.index(recommend_userid)
-    already_rated, predictions = recommend_recipe(df_predict, recommend_userid, mds, user_info, 50) 
+    df_user,thisplus,nb=make_pivot_table(user_view_log2,user_rate_info,recipe_category,'user_token_id','recipe_id','values')
+    #df_user_recipe_ratings , thisplus,nb
+
+    df_svd_pred=filter_df(df_user)
+
+    df_svd_pred.to_csv('./yorizori_predict_matrix.csv', index=False)
+    thisplus.to_csv('./yorizori_user_values.csv',index=False)
+    with open('yorizori_user_index_info.txt','w',encoding='UTF-8') as f:
+        for name in nb:
+            f.write(name+'\n')
     #예측행렬,예측하는유저id, 레시피테이블 데이터프레임, 유저별 로그 데이터프레임, 몇개추천할지
-    predictions
-    print(predictions['recipe_id'].to_list())
-
     
 
-# %%
+    
