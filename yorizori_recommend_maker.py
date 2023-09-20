@@ -20,6 +20,30 @@ import warnings; warnings.simplefilter('ignore')
 # In[243]:
 
 
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[223]:
+
+
+import pandas as pd #csv파일 읽어오는 모듈
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from scipy.sparse.linalg import svds
+from ast import literal_eval
+
+from surprise import Reader, Dataset, SVD, accuracy
+
+
+import warnings; warnings.simplefilter('ignore')
+
+
+
+# In[310]:
+
+
 def return_recipe_id(recipe_title):
     return md[md['recipe_title']==recipe_title]['recipe_id']
 
@@ -67,7 +91,7 @@ def renewal_user_rate_info(user_rate_info):
     return user_rate_log
 
 
-def make_pivot_table(user_view_info,user_rate_info,recipe_category,index,column,value):
+def make_pivot_table(user,user_view_info,user_rate_info,recipe_category,index,column,value):
 
     user_rate=renewal_user_rate_info(user_rate_info)
     user_view=merge_category_view_log(user_view_info,recipe_category)
@@ -81,11 +105,12 @@ def make_pivot_table(user_view_info,user_rate_info,recipe_category,index,column,
     b=a.swaplevel('user_token_id','recipe_id')
     b=b.reset_index()
     
-    userview_value = pd.merge(b,userview,how='left')
-
+    userview_value_tmp = pd.merge(b,userview,how='left')
+    
+    userview_value = pd.merge(user_info,userview_value_tmp,how='left').fillna(0,downcast='infer')
     thisplus=pd.merge(user_rate,userview_value,how='right').fillna(0)
     thisplus['star_count'] = 0#(thisplus['star_count'] - thisplus['star_count'].min())/(thisplus['star_count'].max()-thisplus['star_count'].min())
-    
+    #starcount 적용할 수는 있는데 지금 user엔 있는데 viewlog엔 없는사람들이 많아서 잠깐 0으로
     thisplus['values'] = ((thisplus['star_count']*3)+(thisplus['recipe_view_count']*5)+(thisplus['category_value']*10)).fillna(0.0000)
     
     thisplus.drop(['category_value'],axis=1)
@@ -119,6 +144,8 @@ def filter_df(df_user_recipe_ratings):
 # In[250]:
 if __name__ =="__main__":
 
+    
+
     #recommend_userid = 'abcde123'
     md = pd.read_csv('./yorizori/recipe_yorizori.csv')
     user_rate_info = pd.read_csv('./yorizori/user_comment.csv') #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
@@ -126,7 +153,7 @@ if __name__ =="__main__":
     user_search_recipe =  pd.read_csv('./yorizori/search_recipe_log.csv')
     user_view_log =  pd.read_csv('./yorizori/user_view_recipe_log.csv')
     recipe_category = pd.read_csv('./yorizori/recipe_category.csv').drop(['category_id'],axis=1)
-
+    user_info = pd.read_csv('./yorizori/yorizori_user.csv').drop(['age','gender','created_time','updated_time','image_address','nickname','oauth_division'],axis=1)
 
     mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','level','time'],axis=1)
     user_rate_info=user_rate_info.drop(['comment_id','created_time','updated_time','comment'],axis=1)
@@ -134,7 +161,7 @@ if __name__ =="__main__":
     #user_rate_info2['recipe_id']=user_rate_info2['recipe_id'].astype('int')
     user_view_log2=user_view_log.drop(['view_log_id','created_time'],axis=1)
 
-    df_user,thisplus,nb=make_pivot_table(user_view_log2,user_rate_info,recipe_category,'user_token_id','recipe_id','values')
+    df_user,thisplus,nb=make_pivot_table(user_info,user_view_log2,user_rate_info,recipe_category,'user_token_id','recipe_id','values')
     #df_user_recipe_ratings , thisplus,nb
 
     df_svd_pred=filter_df(df_user)
@@ -144,7 +171,7 @@ if __name__ =="__main__":
     with open('yorizori_user_index_info.txt','w',encoding='UTF-8') as f:
         for name in nb:
             f.write(name+'\n')
-    #예측행렬,예측하는유저id, 레시피테이블 데이터프레임, 유저별 로그 데이터프레임, 몇개추천할지
-    
+
+
 
     
