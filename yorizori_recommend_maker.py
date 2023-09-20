@@ -154,7 +154,7 @@ if __name__ =="__main__":
     user_view_log =  pd.read_csv('./yorizori/user_view_recipe_log.csv')
     recipe_category = pd.read_csv('./yorizori/recipe_category.csv').drop(['category_id'],axis=1)
     user_info = pd.read_csv('./yorizori/yorizori_user.csv').drop(['age','gender','created_time','updated_time','image_address','nickname','oauth_division'],axis=1)
-
+    #지금 user_info에 age랑 gender까지 드롭하고 했는데 나중에 이거 고려할때 저부분 지우고 해야됨
     mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','level','time'],axis=1)
     user_rate_info=user_rate_info.drop(['comment_id','created_time','updated_time','comment'],axis=1)
     user_rate_info.columns =['star_count','user_token_id','recipe_id']
