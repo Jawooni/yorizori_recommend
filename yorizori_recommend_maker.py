@@ -1,20 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[223]:
-
-
-import pandas as pd #csv파일 읽어오는 모듈
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
-from scipy.sparse.linalg import svds
-from ast import literal_eval
-from surprise import Reader, Dataset, SVD, accuracy
-
-
-import warnings; warnings.simplefilter('ignore')
 
 
 # In[243]:
@@ -165,7 +148,7 @@ if __name__ =="__main__":
     #df_user_recipe_ratings , thisplus,nb
 
     df_svd_pred=filter_df(df_user)
-
+    
     df_svd_pred.to_csv('./yorizori_predict_matrix.csv', index=False)
     thisplus.to_csv('./yorizori_user_values.csv',index=False)
     with open('yorizori_user_index_info.txt','w',encoding='UTF-8') as f:
