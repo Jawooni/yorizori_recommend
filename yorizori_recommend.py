@@ -58,7 +58,7 @@ def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_r
 # In[250]:
 if __name__ =="__main__":
 
-    recommend_userid =   'test-j70-k30'
+    recommend_userid =   'test-d80-w20-k10'
     md = pd.read_csv('./yorizori/recipe_yorizori.csv')
 
     df_predict = pd.read_csv('./yorizori_predict_matrix.csv')
@@ -82,7 +82,7 @@ if __name__ =="__main__":
 
     
     print(predictions['recipe_id'].to_list())
-
+    print(predictions)
     
 
 # %%
