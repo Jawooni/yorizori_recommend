@@ -56,10 +56,10 @@ def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_r
     alpha=alpha.astype({'recipe_id':'int'})
     # 사용자의 평점이 높은 순으로 정렬된 데이터와 합친다. 
     recommendations = recommendations.merge(alpha, on = 'recipe_id',how='left')
-    
+                                            
     # 컬럼 이름 바꾸고 정렬해서 return
     recommendations = recommendations.rename(columns = {user_id: 'Predictions'}).sort_values('Predictions', ascending = False).iloc[:num_recommendations, :]
-    
+
     
     return user_history, recommendations#alpha
 
@@ -95,8 +95,7 @@ def get_recipe_recommend(id):
         df_user[i]=df_user[i].split("\n")[0]
     
     mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','user_token_id','reference_recipe','level','time'],axis=1)
-    target_user = df_user.index(recommend_userid)
-    already_rated, predictions = recommend_recipe(df_predict, target_user, mds, user_info, 50) 
+    already_rated, predictions = recommend_recipe(df_predict, recommend_userid, mds, user_info, 50)
     #예측행렬,예측하는유저id, 레시피테이블 데이터프레임, 유저별 로그 데이터프레임, 몇개추천할지
     return predictions['recipe_id'].to_list()
 
@@ -178,7 +177,7 @@ if __name__ =="__main__":
 
 
     # recommend init
-    md = pd.read_csv('./data/recipe_yorizori.csv')
+    md = pd.read_csv('./yorizori/recipe_yorizori.csv')
     df_predict = pd.read_csv('./yorizori_predict_matrix.csv')
     user_info = pd.read_csv('./yorizori_user_values.csv')
     f = open('./yorizori_user_index_info.txt','r')
