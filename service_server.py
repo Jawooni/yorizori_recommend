@@ -12,6 +12,7 @@ from scipy import stats
 from scipy.sparse.linalg import svds
 from ast import literal_eval
 from surprise import Reader, Dataset, SVD, accuracy
+
 import sklearn
 from transformers import TFBertForMaskedLM, BertTokenizerFast, FillMaskPipeline
 import tensorflow as tf
@@ -94,7 +95,8 @@ def get_recipe_recommend(id):
         df_user[i]=df_user[i].split("\n")[0]
     
     mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','user_token_id','reference_recipe','level','time'],axis=1)
-    already_rated, predictions = recommend_recipe(df_predict, recommend_userid, mds, user_info, 50) 
+    target_user = df_user.index(recommend_userid)
+    already_rated, predictions = recommend_recipe(df_predict, target_user, mds, user_info, 50) 
     #예측행렬,예측하는유저id, 레시피테이블 데이터프레임, 유저별 로그 데이터프레임, 몇개추천할지
     return predictions['recipe_id'].to_list()
 
@@ -146,8 +148,9 @@ def get_string_by_templates():
         for i in range(temp_num-1):
             sen, mask_count = sentence(tmp,mask_count)
             response=fill_mask(sen)
-            # print(f'응답 {i} : {response}')
+            print(f'응답 {i} : {response}')
             tmp=response.split(' ')
+
 
         print(response)
         # 재료, 크기 분할
