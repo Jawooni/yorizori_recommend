@@ -21,9 +21,13 @@ import tensorflow as tf
 import warnings; warnings.simplefilter('ignore')
 
 from flask import Flask, request, jsonify, Response
+from flask_cors import CORS
 import json
 # Flask 애플리케이션을 생성합니다.
 app = Flask(__name__)
+# CORS(app, resources={r'*': {'origins': 'http://localhost:3000'}})
+# 로컬호스트:3000, 15.165.105.159:3000 에서의 요청만 허용
+CORS(app, origins=["http://localhost:3000", "http://15.165.105.159:3000"])
 
 
 # In[243]:
