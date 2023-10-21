@@ -58,29 +58,31 @@ def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_r
 # In[250]:
 if __name__ =="__main__":
 
-    recommend_userid = 'abcde123'
+    recommend_userid =   'test-d80-w20-k10'
     md = pd.read_csv('./yorizori/recipe_yorizori.csv')
-    
+
     df_predict = pd.read_csv('./yorizori_predict_matrix.csv')
     user_info = pd.read_csv('./yorizori_user_values.csv')
-    
+
     f = open('./yorizori_user_index_info.txt','r')
     df_user = f.readlines()
     for i in range(len(df_user)):
         df_user[i]=df_user[i].split("\n")[0]
-    
+
 
     mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','user_token_id','reference_recipe','level','time'],axis=1)
-    
 
 
 
-    target_user = df_user.index(recommend_userid)
-    already_rated, predictions = recommend_recipe(df_predict, target_user, mds, user_info, 50) 
-    #예측행렬,예측하는유저id, 레시피테이블 데이터프레임, 유저별 로그 데이터프레임, 몇개추천할지
+
+    #target_user = df_user.index(recommend_userid)
+    already_rated, predictions = recommend_recipe(df_predict, recommend_userid, mds, user_info, 50) 
+        #예측행렬,예측하는유저id, 레시피테이블 데이터프레임, 유저별 로그 데이터프레임, 몇개추천할지
     predictions
-    print(predictions['recipe_id'].to_list())
 
+    
+    print(predictions['recipe_id'].to_list())
+    print(predictions)
     
 
 # %%
