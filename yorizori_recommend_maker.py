@@ -47,6 +47,7 @@ def merge_category_view_log(user_view_info,recipe_category):
     
     view_category = pd.merge(user_view_log2,recipe_category)
     
+    
     tmp=view_category.groupby('user_token_id')['recipe_id'].value_counts().to_frame()
     tmps = view_category.groupby('user_token_id')['category'].value_counts().to_frame()
 
