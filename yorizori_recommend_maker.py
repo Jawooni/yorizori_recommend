@@ -17,7 +17,7 @@ from scipy import stats
 from scipy.sparse.linalg import svds
 from ast import literal_eval
 
-from surprise import Reader, Dataset, SVD, accuracy
+#from surprise import Reader, Dataset, SVD, accuracy
 
 
 import warnings; warnings.simplefilter('ignore')
@@ -43,9 +43,9 @@ def renewal_view_log_info(user_view_info):
 
 def merge_category_view_log(user_view_info,recipe_category):
     user_view=renewal_view_log_info(user_view_info)
-    user_view_log2.columns=['user_token_id','recipe_id']
+    user_view_info.columns=['user_token_id','recipe_id']
     
-    view_category = pd.merge(user_view_log2,recipe_category)
+    view_category = pd.merge(user_view_info,recipe_category)
     
     
     tmp=view_category.groupby('user_token_id')['recipe_id'].value_counts().to_frame()
@@ -66,8 +66,8 @@ def merge_category_view_log(user_view_info,recipe_category):
     thisplus2=pd.merge(tts,user_recipe_view_log,how='right').fillna(0)
     
     return thisplus2
-def renewal_user_rate_info(user_rate_info):
-    a=user_rate_info.groupby(['user_token_id','recipe_id'])['star_count'].mean().to_frame()
+def renewal_user_rate_info(user_rate_info_):
+    a=user_rate_info_.groupby(['user_token_id','recipe_id'])['star_count'].mean().to_frame()
     b=a.swaplevel('user_token_id','recipe_id')
 #b
 #tmp=user_view_log2.groupby('user_token_id')['view_recipe_id'].value_counts().to_frame()
@@ -75,8 +75,41 @@ def renewal_user_rate_info(user_rate_info):
     return user_rate_log
 
 
-def make_pivot_table(user,user_view_info,user_rate_info,recipe_category,index,column,value):
+def make_pivot_table(user_info,user_view_info,user_rate_info,recipe_category,index,column,value,age,gender):
+    user_infos = user_info[user_info['gender'].isin([gender])&user_info['age'].isin([age])]
+    
+    user_rate=renewal_user_rate_info(user_rate_info)
+    user_view=merge_category_view_log(user_view_info,recipe_category)
+    user_view=user_view.drop(['category'],axis=1)
+    user_view['recipe_view_count'] = (user_view['recipe_view_count'] - user_view['recipe_view_count'].min())/(user_view['recipe_view_count'].max()-user_view['recipe_view_count'].min())
+    
+    userview = user_view.drop(['category_view_count','category_value'],axis=1)
+    userview = userview.drop_duplicates(subset=['recipe_id','user_token_id'])
+    
+    a=user_view.groupby(['user_token_id','recipe_id'])['category_value'].mean().to_frame()
+    b=a.swaplevel('user_token_id','recipe_id')
+    b=b.reset_index()
+    
+    userview_value_tmp = pd.merge(b,userview,how='left')
+    
+    userview_value = pd.merge(user_infos,userview_value_tmp,how='left').fillna(0,downcast='infer')
+    thisplus=pd.merge(user_rate,userview_value,how='right').fillna(0)
+    thisplus['star_count'] = 0#(thisplus['star_count'] - thisplus['star_count'].min())/(thisplus['star_count'].max()-thisplus['star_count'].min())
+    #starcount 적용할 수는 있는데 지금 user엔 있는데 viewlog엔 없는사람들이 많아서 잠깐 0으로
+    thisplus['values'] = ((thisplus['star_count']*3)+(thisplus['recipe_view_count']*5)+(thisplus['category_value']*10)).fillna(0.0000)
+    
+    thisplus.drop(['category_value'],axis=1)
+    #c=pd.merge(thisplus,b,how='left',on=['recipe_id','user_token_id']).fillna(0)
+    #c['values'] = ((c['star_count']*3)+(c['recipe_view_count']*5)+(c['category_value_y']*10)).fillna(0.0000)
+    df_user_recipe_ratings = thisplus.pivot( #사용자 평점 정보를 피벗테이블 형식으로 바꾸기
+    index=index,
+    columns=column,
+    values=value).fillna(0)
+    
+    nb=df_user_recipe_ratings.index.to_list()
 
+    return df_user_recipe_ratings ,thisplus,nb,userview_value
+def make_pivot_table_all(user_info,user_view_info,user_rate_info,recipe_category,index,column,value):
     user_rate=renewal_user_rate_info(user_rate_info)
     user_view=merge_category_view_log(user_view_info,recipe_category)
     user_view=user_view.drop(['category'],axis=1)
@@ -108,7 +141,6 @@ def make_pivot_table(user,user_view_info,user_rate_info,recipe_category,index,co
     nb=df_user_recipe_ratings.index.to_list()
 
     return df_user_recipe_ratings ,thisplus,nb
-
 #df_user_recipe_ratings , 
 def filter_df(df_user_recipe_ratings):
     mt=df_user_recipe_ratings.values
@@ -116,8 +148,10 @@ def filter_df(df_user_recipe_ratings):
     user_rating_mean = np.mean(mt, axis=1)
 
     matrix_user_mean = mt-user_rating_mean.reshape(-1,1)
-
-    U,sigma, Vt = svds(matrix_user_mean, k=6)
+    
+    num = matrix_user_mean.shape[0]-1
+    
+    U,sigma, Vt = svds(matrix_user_mean, k=num)
 
     sigma = np.diag(sigma)
 
@@ -132,29 +166,52 @@ if __name__ =="__main__":
 
     #recommend_userid = 'abcde123'
     md = pd.read_csv('./yorizori/recipe_yorizori.csv')
-    user_rate_info = pd.read_csv('./yorizori/user_comment.csv') #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
-    user_search_ingredient = pd.read_csv('./yorizori/search_ingredient_log.csv')
-    user_search_recipe =  pd.read_csv('./yorizori/search_recipe_log.csv')
-    user_view_log =  pd.read_csv('./yorizori/user_view_recipe_log.csv')
-    recipe_category = pd.read_csv('./yorizori/recipe_category.csv').drop(['category_id'],axis=1)
-    user_info = pd.read_csv('./yorizori/yorizori_user.csv').drop(['age','gender','created_time','updated_time','image_address','nickname','oauth_division'],axis=1)
-    #지금 user_info에 age랑 gender까지 드롭하고 했는데 나중에 이거 고려할때 저부분 지우고 해야됨
+    user_rate_data = pd.read_csv('./yorizori/user_comment.csv').drop(['comment_id','created_time','updated_time','comment'],axis=1) #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
+    user_view_data =  pd.read_csv('./yorizori/user_view_recipe_log.csv').drop(['view_log_id','created_time'],axis=1)
+    recipe_category_data = pd.read_csv('./yorizori/recipe_category.csv').drop(['category_id'],axis=1)
+    user_info_data = pd.read_csv('./yorizori/yorizori_user.csv').drop(['created_time','updated_time','image_address','nickname','oauth_division'],axis=1)
     mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','level','time'],axis=1)
-    user_rate_info=user_rate_info.drop(['comment_id','created_time','updated_time','comment'],axis=1)
-    user_rate_info.columns =['star_count','user_token_id','recipe_id']
-    #user_rate_info2['recipe_id']=user_rate_info2['recipe_id'].astype('int')
-    user_view_log2=user_view_log.drop(['view_log_id','created_time'],axis=1)
 
-    df_user,thisplus,nb=make_pivot_table(user_info,user_view_log2,user_rate_info,recipe_category,'user_token_id','recipe_id','values')
-    #df_user_recipe_ratings , thisplus,nb
-
-    df_svd_pred=filter_df(df_user)
+    user_rate_data.columns =['star_count','user_token_id','recipe_id']
     
-    df_svd_pred.to_csv('./yorizori_predict_matrix.csv', index=False)
-    thisplus.to_csv('./yorizori_user_values.csv',index=False)
-    with open('yorizori_user_index_info.txt','w',encoding='UTF-8') as f:
+    
+    df_user,thisplus,nb = make_pivot_table_all(user_info_data,user_view_data,user_rate_data,recipe_category_data,'user_token_id','recipe_id','values')
+    df_svd_pred_all=filter_df(df_user)
+    filepath = './yorizori_predict/yorizori_predict_matrix.csv'
+    df_svd_pred_all.to_csv(filepath, index=False)
+    thisplus.to_csv('./yorizori_predict/yorizori_user_values.csv',index=False)
+    with open('./yorizori_predict/yorizori_user_index_info.txt','w',encoding='UTF-8') as f:
         for name in nb:
             f.write(name+'\n')
+    
+    
+    age_pool = user_info['age'].unique()
+    gender_pool = user_info['gender'].unique()
+
+    for age in age_pool:
+        for gender in gender_pool:
+            md = pd.read_csv('./yorizori/recipe_yorizori.csv')
+            user_rate_data = pd.read_csv('./yorizori/user_comment.csv').drop(['comment_id','created_time','updated_time','comment'],axis=1) #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
+            user_view_data =  pd.read_csv('./yorizori/user_view_recipe_log.csv').drop(['view_log_id','created_time'],axis=1)
+            recipe_category_data = pd.read_csv('./yorizori/recipe_category.csv').drop(['category_id'],axis=1)
+            user_info_data = pd.read_csv('./yorizori/yorizori_user.csv').drop(['created_time','updated_time','image_address','nickname','oauth_division'],axis=1)
+            mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','level','time'],axis=1)
+
+            user_rate_data.columns =['star_count','user_token_id','recipe_id']
+            print(age,gender)
+
+            df_user2,thisplus2,nb2,userv2=make_pivot_table(user_info_data,user_view_data,user_rate_data,recipe_category_data,'user_token_id','recipe_id','values',age,gender)
+    #df_user_recipe_ratings , thisplus,nb
+            if(df_user2.shape[0]<3):
+                df_svd_pred = df_svd_pred_all
+            else:
+                df_svd_pred=filter_df(df_user2)
+            filepath = './yorizori_predict/yorizori_predict_matrix'+age+'_'+gender+'.csv'
+            df_svd_pred.to_csv(filepath, index=False)
+            thisplus2.to_csv('./yorizori_predict/yorizori_user_values'+age+'_'+gender+'.csv',index=False)
+            with open('./yorizori_predict/yorizori_user_index_info'+age+'_'+gender+'.txt','w',encoding='UTF-8') as f:
+                for name in nb2:
+                    f.write(name+'\n')
 
 
 
