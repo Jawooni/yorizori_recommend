@@ -17,7 +17,7 @@ from scipy import stats
 from scipy.sparse.linalg import svds
 from ast import literal_eval
 
-from surprise import Reader, Dataset, SVD, accuracy
+#from surprise import Reader, Dataset, SVD, accuracy
 
 
 import warnings; warnings.simplefilter('ignore')
