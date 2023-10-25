@@ -1,22 +1,27 @@
-﻿"user_token_id","created_time","updated_time","age","gender","image_address","nickname","oauth_division"
-"105319262119597860909","2023-08-03 14:48:41.052069","2023-08-03 14:48:41.052069",\N,\N,"https://lh3.googleusercontent.com/a/AAcHTtdXnjAfPBxJWGkaQSWC9fM_L186RI3d1uceKnS3C8nty-0=s96-c","HanByeol Jeong (Habo)","google"
-"2771733400","2023-08-03 16:41:47.828660","2023-09-16 10:40:25.583075","20~29","남자","https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/4f6ef258-2399-4fa8-869f-9808f5dc4648.jpg","첼시베이베","kakao"
-"2947093440","2023-08-03 17:49:37.886614","2023-08-03 17:49:37.886614","20~29","남자","http://k.kakaocdn.net/dn/ctzU4B/btro6J11PxC/INkQ6ULsbswtlg0qXxnvrk/img_110x110.jpg","구자운","kakao"
-"3001319108","2023-09-14 16:03:37.895947","2023-09-15 23:57:26.080424",\N,\N,"https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/762bd28f-52e9-4cf8-b568-efef02318751.jpg","강두","kakao"
-"abbbb","2023-07-12 22:44:58.707560","2023-09-14 15:25:44.987402","20~29","남자","https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/9c1849c5-b137-416c-bf33-9169b078e9ee.jpg","duyyaa","google"
-"abc123","2023-07-12 10:58:02.284048","2023-07-26 10:23:30.810374","20~29","남자","https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/80435b8d-ff11-4711-8804-a3017478659c.png","요리조리","google"
-"abcde123","2023-07-12 11:05:25.566489","2023-08-08 15:22:51.648429","20~29","남자","https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/default/defaultProfile.png","abcdef최고","google"
-"HsLS6n6BpDR7R6kZ4vIEpIf5VZN4WNkK6JFIfU08uuY","2023-09-12 17:01:51.103102","2023-09-12 17:01:51.103102",\N,\N,"https://ssl.pstatic.net/static/pwe/address/img_profile.png","DDIONG","naver"
-"te-FuhT0cuHOVAxAilVarQ7pt6WOkfX27xEl0sxuOAo","2023-08-05 20:38:42.832972","2023-08-05 20:38:42.832972","20~29","남자","https://phinf.pstatic.net/contact/20220601_19/1654086804067f2BhM_PNG/avatar_profile.png","Habo","naver"
-"test-d50-k30-w20","2023-09-13 15:04:13.000000","2023-09-13 15:04:22.000000","20~29","여자",\N,\N,\N
-"test-d70-w30","2023-09-13 15:04:12.000000","2023-09-13 15:04:23.000000","20대 이하","여자",\N,\N,\N
-"test-d80-w20-k10","2023-09-13 15:04:02.000000","2023-09-13 15:04:23.000000","20대 이하","여자",\N,\N,\N
-"test-j60-k20-w20","2023-09-13 15:04:01.000000","2023-09-13 15:04:25.000000","20~29","남자",\N,\N,\N
-"test-j65-k15-w20","2023-09-13 15:04:00.000000","2023-09-13 15:04:25.000000","30-39","남자",\N,\N,\N
-"test-j70-k30","2023-09-13 15:04:05.000000","2023-09-13 15:04:27.000000","20~29","남자",\N,\N,\N
-"test-k60-w20-f20","2023-09-13 15:04:13.000000","2023-09-13 15:04:21.000000","50-59","남자",\N,\N,\N
-"test-k80-w20","2023-09-13 15:04:14.000000","2023-09-13 15:04:20.000000","50-59","남자",\N,\N,\N
-"test-k90-w10","2023-09-13 15:04:15.000000","2023-09-13 15:04:20.000000","60대 이상","남자",\N,\N,\N
-"test-w65-k45","2023-09-13 15:04:15.000000","2023-09-13 15:04:19.000000","30-39","여자",\N,\N,\N
-"test-w70-k20-d10","2023-09-13 15:04:17.000000","2023-09-13 15:04:18.000000","40-49","여자",\N,\N,\N
-"yorizori2018","2023-07-12 10:58:02.284048","2023-08-06 15:02:47.892626","20~29","남자","https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/4a5050e7-845c-48e8-80ad-a1a514741b44.png","요리조리","google"
+﻿user_token_id,created_time,updated_time,age,gender,image_address,nickname,oauth_division
+1.0857E+20,26:28.7,26:28.7,\N,\N,https://lh3.googleusercontent.com/a/ACg8ocJK23xY5CMMb2Nu8BIAD2xgUY6NnoNm1LK-wp6-eSiN=s96-c,강영준,google
+3038517892,11:09.5,11:09.5,\N,\N,http://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg,강영준,kakao
+4hf-ja5AjiH4415jIOnqw3oEXQGxtt-76loGcSGbbCY,14:43.5,14:43.5,\N,\N,https://ssl.pstatic.net/static/pwe/address/img_profile.png,johndu****,naver
+5Z4Fqpjul0tq2KK9RzOHDcYFoVtGZRcrnEB7YyKV1cQ,26:24.8,26:54.5,\N,\N,https://ssl.pstatic.net/static/pwe/address/img_profile.png,Birrong,naver
+HsLS6n6BpDR7R6kZ4vIEpIf5VZN4WNkK6JFIfU08uuY,01:51.1,01:51.1,20-29,남자,https://ssl.pstatic.net/static/pwe/address/img_profile.png,DDIONG,naver
+yorizori2018,58:02.3,53:45.5,20-29,남자,https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/4a5050e7-845c-48e8-80ad-a1a514741b44.png,요리조리,google
+test-j70-k30,04:05.0,04:27.0,20-29,남자,\N,\N,\N
+test-j60-k20-w20,04:01.0,04:25.0,20-29,남자,\N,\N,\N
+test-d50-k30-w20,04:13.0,04:22.0,20-29,남자,\N,\N,\N
+te-FuhT0cuHOVAxAilVarQ7pt6WOkfX27xEl0sxuOAo,38:42.8,38:42.8,20-29,남자,https://phinf.pstatic.net/contact/20220601_19/1654086804067f2BhM_PNG/avatar_profile.png,Habo,naver
+abcde123,05:25.6,22:51.6,20-29,남자,https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/default/defaultProfile.png,abcdef최고,google
+abc123,58:02.3,23:30.8,20-29,남자,https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/80435b8d-ff11-4711-8804-a3017478659c.png,요리조리,google
+abbbb,44:58.7,25:45.0,20-29,남자,https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/9c1849c5-b137-416c-bf33-9169b078e9ee.jpg,duyyaa,google
+3001319108,03:37.9,29:35.7,20-29,남자,https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/3fe8a62d-d415-42e5-b7a2-a47798eae35b.jpg,강두,kakao
+2947093440,49:37.9,49:37.9,20-29,남자,http://k.kakaocdn.net/dn/ctzU4B/btro6J11PxC/INkQ6ULsbswtlg0qXxnvrk/img_110x110.jpg,구자운,kakao
+2771733400,41:47.8,40:25.6,20-29,남자,https://yorizori-s3.s3.ap-northeast-2.amazonaws.com/userImage/4f6ef258-2399-4fa8-869f-9808f5dc4648.jpg,첼시베이베,kakao
+1.13706E+20,14:00.4,14:00.4,20-29,남자,https://lh3.googleusercontent.com/a/ACg8ocLRf9dMVvWGvmoS6SKvciVuSiYfAwkwuGW80oIsJGuQ5-M=s96-c,duyaan,google
+1.05319E+20,48:41.1,48:41.1,20-29,남자,https://lh3.googleusercontent.com/a/AAcHTtdXnjAfPBxJWGkaQSWC9fM_L186RI3d1uceKnS3C8nty-0=s96-c,HanByeol Jeong (Habo),google
+test-d70-w30,04:12.0,04:23.0,20대 이하,여자,\N,\N,\N
+test-d80-w20-k10,04:02.0,04:23.0,20대 이하,여자,\N,\N,\N
+test-j65-k15-w20,04:00.0,04:25.0,30-39,남자,\N,\N,\N
+test-w65-k45,04:15.0,04:19.0,30-39,여자,\N,\N,\N
+test-w70-k20-d10,04:17.0,04:18.0,40-49,여자,\N,\N,\N
+test-k60-w20-f20,04:13.0,04:21.0,50-59,남자,\N,\N,\N
+test-k80-w20,04:14.0,04:20.0,50-59,남자,\N,\N,\N
+test-k90-w10,04:15.0,04:20.0,60대 이상,남자,\N,\N,\N
