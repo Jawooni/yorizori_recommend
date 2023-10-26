@@ -43,7 +43,7 @@ def input_random_data(md):
 def recommend_today_recipe(recipe_df):
     table = filtering_today_recipe(recipe_df)
     table['total_score'] = (table['n_star_count']+table['n_review_count']+table['normal_view_count'])/(1+table['date_diff'])
-    
+    #나눠지는 값이 3부터여야 날짜에 의한 데이터의 변화가 심하지 않다고 생각함.
     table = table.sort_values('total_score', ascending = False)
     return table[:12]['recipe_id'].tolist(), table
 
