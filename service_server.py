@@ -198,16 +198,19 @@ def filtering_today_recipe(md):
     lastyear_S = now - relativedelta(years=1) - relativedelta(days=10)
     lastyear_E = lastyear_S + relativedelta(days=20)
     
-    target_recipe = md[(md['created_time']>lastyear_S) & (md['created_time']<lastyear_E)]
+    thisyear = now - relativedelta(days=10)
+    
+    target_recipe = md[(md['created_time']>lastyear_S) & (md['created_time']<lastyear_E) | (md['created_time']>thisyear)]
 
     target_recipe['normal_view_count']=target_recipe['recipe_view_count'].apply(lambda x: 1 if x>2000 else (x-1)/1999)
 
-    target_recipe['n_star_count'] = target_recipe['star_count'].apply(lambda x: (x-3) if x<4 else (x-3)**3)
+    target_recipe['n_star_count'] = target_recipe['star_count'].apply(lambda x: 0.3*x if x<3 else 0.0875*(x-2)**2+0.2125)
 
-    target_recipe['date_diff'] = target_recipe['created_time'].apply(lambda x: (now-x).days%365 if (now-x).days%365<50 else (x-now).days%365)
+    target_recipe['date_diff'] = target_recipe['created_time'].apply(lambda x: 0.2*((now-x).days%365) if thisyear.year==x.year else((now-x).days%365 if (now-x).days%365<50 else (x-now).days%365))
 
-    target_recipe['n_review_count'] = (np.log(target_recipe['review_count']+2)*1.6)
+    target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x>9 else (np.log(target_recipe['review_count']+1)))
     
+    #(np.log(target_recipe['review_count']+2)*1.6)
     
     return target_recipe
 
@@ -222,7 +225,7 @@ def input_random_data(md):
 
 def recommend_today_recipe(recipe_df):
     table = filtering_today_recipe(recipe_df)
-    table['total_score'] = (table['n_star_count']*table['n_review_count']*table['normal_view_count'])/(3+table['date_diff'])
+    table['total_score'] = (table['n_star_count']+table['n_review_count']+table['normal_view_count'])/(1+table['date_diff'])
     #나눠지는 값이 3부터여야 날짜에 의한 데이터의 변화가 심하지 않다고 생각함.
     table = table.sort_values('total_score', ascending = False)
     return table[:12]['recipe_id'].tolist(), table
@@ -296,11 +299,12 @@ def get_string_by_templates():
             ing_size = conver_ingredient+size
             template_list.append(ing_size)
 
-            time = template.get("time")
+            time = template.get("time").replace(' ', '') # 공백 제거
             template_list.append(time)
 
             # 액션을 얻고 공백이 있다면 공백을 대체
             action = template.get("action")
+            action = action.replace('.', '') # 온점 제거
             conver_action = ''
             if ' ' in action: # action에 공백이 있다면 
                 conver_action = action.replace(' ', '')
@@ -368,6 +372,7 @@ def get_string_by_templates():
 
         # Responses 안에 있는 내용물들의 마지막 서술어를 변환해주기
         result_response = ""
+        자연스러움빈도 = 0
         for i, result in enumerate(responses):
 
             if len(responses) == 1: # 한개인 템플릿이 왔을 경우
@@ -378,16 +383,16 @@ def get_string_by_templates():
                 break
             elif len(responses) > 1: # 여러개의 템플릿이 왔을 경우
                 if i == 0: # 템플릿이 처음일 경우
-
                     # 문장이 너무 길다면 끊어버리고 그리고, 그 후, 그 뒤로 처리하기
                     if len(result)< 25:
                         result_response = predicate_conversion(result)
+                        자연스러움빈도 += 1
                     else:
                         result_response = conjunctions_conversion(result)
                     print(f'처음:{result_response}')
                 elif i != len(responses)-1: # 템플릿이 여러개일경우 끝에것이 아니라면
                     # 문장이 너무 길다면 끊어버리고 그리고, 그 후, 그 뒤로 처리하기
-                    if len(result)< 25:
+                    if len(result)< 25 and 자연스러움빈도 == 0:
                         result_response = result_response + " " + predicate_conversion(result)
                     else:
                         result_response = result_response + " " + conjunctions_conversion(result)
@@ -395,7 +400,14 @@ def get_string_by_templates():
                 else: # 마지막 템플릿 일 경우
                     result_response = result_response + " " + result + "."
                     print(f'결론:{result_response}')
-                    
+
+
+        # 만약 time 에 '시간' 이라는 말이 있다면 시간간을 시간으로 바꿔주기
+        if time.find('시간') != -1:
+            pass
+        else:
+            result_response = result_response.replace('시간간', '시간')
+
 
 
         print(result_response)
