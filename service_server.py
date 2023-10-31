@@ -296,11 +296,12 @@ def get_string_by_templates():
             ing_size = conver_ingredient+size
             template_list.append(ing_size)
 
-            time = template.get("time")
+            time = template.get("time").replace(' ', '') # 공백 제거
             template_list.append(time)
 
             # 액션을 얻고 공백이 있다면 공백을 대체
             action = template.get("action")
+            action = action.replace('.', '') # 온점 제거
             conver_action = ''
             if ' ' in action: # action에 공백이 있다면 
                 conver_action = action.replace(' ', '')
@@ -368,6 +369,7 @@ def get_string_by_templates():
 
         # Responses 안에 있는 내용물들의 마지막 서술어를 변환해주기
         result_response = ""
+        자연스러움빈도 = 0
         for i, result in enumerate(responses):
 
             if len(responses) == 1: # 한개인 템플릿이 왔을 경우
@@ -378,16 +380,16 @@ def get_string_by_templates():
                 break
             elif len(responses) > 1: # 여러개의 템플릿이 왔을 경우
                 if i == 0: # 템플릿이 처음일 경우
-
                     # 문장이 너무 길다면 끊어버리고 그리고, 그 후, 그 뒤로 처리하기
                     if len(result)< 25:
                         result_response = predicate_conversion(result)
+                        자연스러움빈도 += 1
                     else:
                         result_response = conjunctions_conversion(result)
                     print(f'처음:{result_response}')
                 elif i != len(responses)-1: # 템플릿이 여러개일경우 끝에것이 아니라면
                     # 문장이 너무 길다면 끊어버리고 그리고, 그 후, 그 뒤로 처리하기
-                    if len(result)< 25:
+                    if len(result)< 25 and 자연스러움빈도 == 0:
                         result_response = result_response + " " + predicate_conversion(result)
                     else:
                         result_response = result_response + " " + conjunctions_conversion(result)
@@ -395,7 +397,14 @@ def get_string_by_templates():
                 else: # 마지막 템플릿 일 경우
                     result_response = result_response + " " + result + "."
                     print(f'결론:{result_response}')
-                    
+
+
+        # 만약 time 에 '시간' 이라는 말이 있다면 시간간을 시간으로 바꿔주기
+        if time.find('시간') != -1:
+            pass
+        else:
+            result_response = result_response.replace('시간간', '시간')
+
 
 
         print(result_response)
