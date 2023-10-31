@@ -94,7 +94,7 @@ def make_pivot_table(user_info,user_view_info,user_rate_info,recipe_category,ind
     
     userview_value = pd.merge(user_infos,userview_value_tmp,how='left').fillna(0,downcast='infer')
     thisplus=pd.merge(user_rate,userview_value,how='right').fillna(0)
-    thisplus['star_count'] = 0#(thisplus['star_count'] - thisplus['star_count'].min())/(thisplus['star_count'].max()-thisplus['star_count'].min())
+    thisplus['star_count'] = (thisplus['star_count'])/(thisplus['star_count'].max())
     #starcount 적용할 수는 있는데 지금 user엔 있는데 viewlog엔 없는사람들이 많아서 잠깐 0으로
     thisplus['values'] = ((thisplus['star_count']*3)+(thisplus['recipe_view_count']*5)+(thisplus['category_value']*10)).fillna(0.0000)
     
@@ -126,7 +126,7 @@ def make_pivot_table_all(user_info,user_view_info,user_rate_info,recipe_category
     
     userview_value = pd.merge(user_info,userview_value_tmp,how='left').fillna(0,downcast='infer')
     thisplus=pd.merge(user_rate,userview_value,how='right').fillna(0)
-    thisplus['star_count'] = 0#(thisplus['star_count'] - thisplus['star_count'].min())/(thisplus['star_count'].max()-thisplus['star_count'].min())
+    thisplus['star_count'] = (thisplus['star_count'])/(thisplus['star_count'].max())
     #starcount 적용할 수는 있는데 지금 user엔 있는데 viewlog엔 없는사람들이 많아서 잠깐 0으로
     thisplus['values'] = ((thisplus['star_count']*3)+(thisplus['recipe_view_count']*5)+(thisplus['category_value']*10)).fillna(0.0000)
     
@@ -184,35 +184,66 @@ if __name__ =="__main__":
         for name in nb:
             f.write(name+'\n')
     
+
+
     
-    age_pool = user_info['age'].unique()
-    gender_pool = user_info['gender'].unique()
+    man_age_pool = user_info_data[user_info_data['gender']=="남자"]['age'].unique()
+    woman_age_pool = user_info_data[user_info_data['gender']=="여자"]['age'].unique()
+    
+    
+    for age in man_age_pool:
+        md = pd.read_csv('./yorizori/recipe_yorizori.csv')
+        user_rate_data = pd.read_csv('./yorizori/user_comment.csv').drop(['comment_id','created_time','updated_time','comment'],axis=1) #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
+        user_view_data =  pd.read_csv('./yorizori/user_view_recipe_log.csv').drop(['view_log_id','created_time'],axis=1)
+        recipe_category_data = pd.read_csv('./yorizori/recipe_category.csv').drop(['category_id'],axis=1)
+        user_info_data = pd.read_csv('./yorizori/yorizori_user.csv').drop(['created_time','updated_time','image_address','nickname','oauth_division'],axis=1)
+        mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','level','time'],axis=1)
 
-    for age in age_pool:
-        for gender in gender_pool:
-            md = pd.read_csv('./yorizori/recipe_yorizori.csv')
-            user_rate_data = pd.read_csv('./yorizori/user_comment.csv').drop(['comment_id','created_time','updated_time','comment'],axis=1) #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
-            user_view_data =  pd.read_csv('./yorizori/user_view_recipe_log.csv').drop(['view_log_id','created_time'],axis=1)
-            recipe_category_data = pd.read_csv('./yorizori/recipe_category.csv').drop(['category_id'],axis=1)
-            user_info_data = pd.read_csv('./yorizori/yorizori_user.csv').drop(['created_time','updated_time','image_address','nickname','oauth_division'],axis=1)
-            mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','level','time'],axis=1)
-
-            user_rate_data.columns =['star_count','user_token_id','recipe_id']
-            print(age,gender)
-
-            df_user2,thisplus2,nb2,userv2=make_pivot_table(user_info_data,user_view_data,user_rate_data,recipe_category_data,'user_token_id','recipe_id','values',age,gender)
+        user_rate_data.columns =['star_count','user_token_id','recipe_id']
+        print(age,"남자")
+            
+        
+        df_user2,thisplus2,nb2,userv2=make_pivot_table(user_info_data,user_view_data,user_rate_data,recipe_category_data,'user_token_id','recipe_id','values',age,"남자")
+    
     #df_user_recipe_ratings , thisplus,nb
-            if(df_user2.shape[0]<3):
-                df_svd_pred = df_svd_pred_all
-            else:
-                df_svd_pred=filter_df(df_user2)
-            filepath = './yorizori_predict/yorizori_predict_matrix'+age+'_'+gender+'.csv'
+        if(df_user2.shape[0]<3):
+            df_svd_pred = df_svd_pred_all
+        else :
+            df_svd_pred=filter_df(df_user2)
+            filepath = './yorizori_predict/yorizori_predict_matrix'+age+'_남자.csv'
             df_svd_pred.to_csv(filepath, index=False)
-            thisplus2.to_csv('./yorizori_predict/yorizori_user_values'+age+'_'+gender+'.csv',index=False)
-            with open('./yorizori_predict/yorizori_user_index_info'+age+'_'+gender+'.txt','w',encoding='UTF-8') as f:
-                for name in nb2:
-                    f.write(name+'\n')
+        thisplus2.to_csv('./yorizori_predict/yorizori_user_values'+age+'_남자.csv',index=False)
+        with open('./yorizori_predict/yorizori_user_index_info'+age+'_남자.txt','w',encoding='UTF-8') as f:
+            for name in nb2:
+                f.write(name+'\n')
+                    
+    for age1 in woman_age_pool:
+        md = pd.read_csv('./yorizori/recipe_yorizori.csv')
+        user_rate_data = pd.read_csv('./yorizori/user_comment.csv').drop(['comment_id','created_time','updated_time','comment'],axis=1) #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
+        user_view_data =  pd.read_csv('./yorizori/user_view_recipe_log.csv').drop(['view_log_id','created_time'],axis=1)
+        recipe_category_data = pd.read_csv('./yorizori/recipe_category.csv').drop(['category_id'],axis=1)
+        user_info_data = pd.read_csv('./yorizori/yorizori_user.csv').drop(['created_time','updated_time','image_address','nickname','oauth_division'],axis=1)
+        mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','level','time'],axis=1)
 
+        user_rate_data.columns =['star_count','user_token_id','recipe_id']
+        print(age1,"여자")
+            
+        
+        df_user2,thisplus2,nb2,userv2=make_pivot_table(user_info_data,user_view_data,user_rate_data,recipe_category_data,'user_token_id','recipe_id','values',age1,"여자")
+    
+    #df_user_recipe_ratings , thisplus,nb
+        if(df_user2.shape[0]<3):
+            df_svd_pred = df_svd_pred_all
+        else :
+            df_svd_pred=filter_df(df_user2)
+            filepath = './yorizori_predict/yorizori_predict_matrix'+age1+'_여자.csv'
+            df_svd_pred.to_csv(filepath, index=False)
+        thisplus2.to_csv('./yorizori_predict/yorizori_user_values'+age1+'_여자.csv',index=False)
+        with open('./yorizori_predict/yorizori_user_index_info'+age1+'_여자.txt','w',encoding='UTF-8') as f:
+            for name in nb2:
+                f.write(name+'\n')
+                    
+        
 
 
     
