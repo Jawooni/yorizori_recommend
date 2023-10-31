@@ -160,4 +160,3 @@ cython_debug/
 #.idea/
 recipe_finetuning/config.json
 recipe_finetuning/tf_model.h5
-service_server copy.py
