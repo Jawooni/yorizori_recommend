@@ -26,6 +26,7 @@ from dateutil.relativedelta import relativedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
 import load_db_data
+import yorizori_recommend_maker
 
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
@@ -43,10 +44,13 @@ def save_to_data_import():
     try:
         load_db_data.load_db_data_csv()
         print("데이터 요청 완료")
+        
+        # predict_matrix.csv 생성하기
+        yorizori_recommend_maker.recommend_maker()
 
         # user recommend init
         md = pd.read_csv('./yorizori/recipe_yorizori.csv')
-        df_predict = pd.read_csv('./yorizori_predict_matrix.csv')
+        df_predict = pd.read_csv('./yorizori_predict/yorizori_predict_matrix.csv')
         user_info = pd.read_csv('./yorizori_predict/yorizori_user_values.csv')
         f = open('./yorizori_predict/yorizori_user_index_info.txt','r')
         df_user = f.readlines()
@@ -460,10 +464,9 @@ def get_string_by_templates():
 # In[250]:
 if __name__ =="__main__":
 
-
     # user recommend init
     md = pd.read_csv('./yorizori/recipe_yorizori.csv')
-    df_predict = pd.read_csv('./yorizori_predict_matrix.csv')
+    df_predict = pd.read_csv('./yorizori_predict/yorizori_predict_matrix.csv')
     user_info = pd.read_csv('./yorizori_predict/yorizori_user_values.csv')
     f = open('./yorizori_predict/yorizori_user_index_info.txt','r')
     df_user = f.readlines()

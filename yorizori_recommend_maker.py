@@ -159,12 +159,9 @@ def filter_df(df_user_recipe_ratings):
     df_svd_preds = pd.DataFrame(svd_user_predicted_ratings, columns = df_user_recipe_ratings.columns)
 
     return df_svd_preds
-# In[250]:
-if __name__ =="__main__":
 
-    
 
-    #recommend_userid = 'abcde123'
+def recommend_maker():
     md = pd.read_csv('./yorizori/recipe_yorizori.csv')
     user_rate_data = pd.read_csv('./yorizori/user_comment.csv').drop(['comment_id','created_time','updated_time','comment'],axis=1) #해당 유저의 별점과 로그, 최근 조회레시피 검색기록 불러오기
     user_view_data =  pd.read_csv('./yorizori/user_view_recipe_log.csv').drop(['view_log_id','created_time'],axis=1)
@@ -241,9 +238,13 @@ if __name__ =="__main__":
         thisplus2.to_csv('./yorizori_predict/yorizori_user_values'+age1+'_여자.csv',index=False)
         with open('./yorizori_predict/yorizori_user_index_info'+age1+'_여자.txt','w',encoding='UTF-8') as f:
             for name in nb2:
-                f.write(name+'\n')
-                    
-        
+                f.write(name+'\n')    
+# In[250]:
+if __name__ =="__main__":
 
+    
+
+    #recommend_userid = 'abcde123'
+    recommend_maker()
 
     
