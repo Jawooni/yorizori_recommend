@@ -4,9 +4,7 @@ from sqlalchemy import create_engine
 # Database connection
 
 
-
-if __name__ =="__main__":
-
+def load_db_data_csv():
     username = 'admin'
     password = 'yorizori'
     host = 'yorizori-mysql.cbqb9r9uwmbw.ap-northeast-2.rds.amazonaws.com'
@@ -31,3 +29,9 @@ if __name__ =="__main__":
     user_comment.to_csv('./yorizori/user_comment.csv',index=False)
     recipe_info.to_csv('./yorizori/recipe_yorizori.csv',index=False)
     user_view_log.to_csv('./yorizori/user_view_recipe_log.csv',index=False)
+
+
+
+if __name__ =="__main__":
+
+    load_db_data_csv()

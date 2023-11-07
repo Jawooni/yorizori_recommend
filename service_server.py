@@ -24,6 +24,9 @@ from datetime import datetime,timedelta
 import time
 from dateutil.relativedelta import relativedelta
 
+from apscheduler.schedulers.background import BackgroundScheduler
+import load_db_data
+
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 import json
@@ -33,6 +36,35 @@ CORS(app)
 
 # 오늘의 메뉴 원본 실행하기.(FALSE)
 switching = False #이거 False하고 하면 원본으로 실행될거에요!
+
+
+def save_to_data_import():
+    # csv 데이터베이스에서 요청 후 적용하기
+    try:
+        load_db_data.load_db_data_csv()
+        print("데이터 요청 완료")
+
+        # user recommend init
+        md = pd.read_csv('./yorizori/recipe_yorizori.csv')
+        df_predict = pd.read_csv('./yorizori_predict_matrix.csv')
+        user_info = pd.read_csv('./yorizori_predict/yorizori_user_values.csv')
+        f = open('./yorizori_predict/yorizori_user_index_info.txt','r')
+        df_user = f.readlines()
+
+        # today recommend init
+        md_today = pd.read_csv('./yorizori/recipe_yorizori.csv').drop({'updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','user_token_id','level','time','version'},axis=1)
+        md_today['created_time']= pd.to_datetime(md_today['created_time'])
+        print("1시간마다 요청")  # 보낸 후에 출력되는 메시지
+
+    except:
+        print("데이터 요청 실패")
+
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(save_to_data_import, 'interval', hours=1)
+scheduler.start()
+
 
 
 # In[243]:
@@ -432,8 +464,8 @@ if __name__ =="__main__":
     # user recommend init
     md = pd.read_csv('./yorizori/recipe_yorizori.csv')
     df_predict = pd.read_csv('./yorizori_predict_matrix.csv')
-    user_info = pd.read_csv('./yorizori_user_values.csv')
-    f = open('./yorizori_user_index_info.txt','r')
+    user_info = pd.read_csv('./yorizori_predict/yorizori_user_values.csv')
+    f = open('./yorizori_predict/yorizori_user_index_info.txt','r')
     df_user = f.readlines()
 
     # today recommend init
