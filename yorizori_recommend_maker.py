@@ -96,7 +96,7 @@ def make_pivot_table(user_info,user_view_info,user_rate_info,recipe_category,ind
     thisplus=pd.merge(user_rate,userview_value,how='right').fillna(0)
     thisplus['star_count'] = (thisplus['star_count'])/(thisplus['star_count'].max())
     #starcount 적용할 수는 있는데 지금 user엔 있는데 viewlog엔 없는사람들이 많아서 잠깐 0으로
-    thisplus['values'] = ((thisplus['star_count']*3)+(thisplus['recipe_view_count']*5)+(thisplus['category_value']*10)).fillna(0.0000)
+    thisplus['values'] = 100*((thisplus['star_count']*3)+(thisplus['recipe_view_count']*5)+(thisplus['category_value']*30)).fillna(0.0000)
     
     thisplus.drop(['category_value'],axis=1)
     #c=pd.merge(thisplus,b,how='left',on=['recipe_id','user_token_id']).fillna(0)
