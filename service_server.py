@@ -80,7 +80,7 @@ def return_recipe_id(recipe_title):
 def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_recommendations=5):
     
     #현재는 index로 적용이 되어있으므로 user_id - 1을 해야함.
-    # user_row_number = user_id - 1 
+   # user_row_number = user_id - 1 
     target_user = df_user.index(user_id)
 
     # 최종적으로 만든 pred_df에서 사용자 index에 따라 데이터 정렬 -> 레시피 평점(나중엔 스코어) 높은 순으로 정렬 됌
@@ -95,7 +95,7 @@ def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_r
     user_history.sort_values("values",axis=0, ascending=False)
     
     # 원본 레시피들에서 사용자가 본 메뉴를 제외한 데이터를 추출
-    recommendations = ori_recipe_df[~ori_recipe_df['recipe_id'].isin(user_history['recipe_id'])]
+    recommendations = ori_recipe_df#ori_recipe_df[~ori_recipe_df['recipe_id'].isin(user_history['recipe_id'])]
     
     alpha = pd.DataFrame(sorted_user_predictions).reset_index().rename(columns={'index':'recipe_id',target_user:'Predictions'})
     alpha=alpha.astype({'recipe_id':'int'})
@@ -104,7 +104,7 @@ def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_r
                                             
     # 컬럼 이름 바꾸고 정렬해서 return
     recommendations = recommendations.rename(columns = {user_id: 'Predictions'}).sort_values('Predictions', ascending = False).iloc[:num_recommendations, :]
-
+                      
     
     return user_history, recommendations#alpha
 
