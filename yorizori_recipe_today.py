@@ -24,8 +24,10 @@ def filtering_today_recipe(md):
 
     target_recipe['date_diff'] = target_recipe['created_time'].apply(lambda x: 0.2*((now-x).days%365) if thisyear.year==x.year else((now-x).days%365 if (now-x).days%365<50 else (x-now).days%365))
 
-    target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x>9 else (np.log(target_recipe['review_count']+1)))
-    
+    # 표현식 버전 오류로 인해 아래껏으로 수정: 의미상으로는 동일
+    # target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x>9 else (np.log(target_recipe['review_count']+1)))
+    target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x > 9 else np.log(x + 1))
+
     #(np.log(target_recipe['review_count']+2)*1.6)
     
     target_recipe['review_count']

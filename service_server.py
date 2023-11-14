@@ -66,7 +66,7 @@ def save_to_data_import():
 
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(save_to_data_import, 'interval', hours=1)
+scheduler.add_job(save_to_data_import, 'interval', minutes=5)
 scheduler.start()
 
 
@@ -244,7 +244,10 @@ def filtering_today_recipe(md):
 
     target_recipe['date_diff'] = target_recipe['created_time'].apply(lambda x: 0.2*((now-x).days%365) if thisyear.year==x.year else((now-x).days%365 if (now-x).days%365<50 else (x-now).days%365))
 
-    target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x>9 else (np.log(target_recipe['review_count']+1)))
+    # 표현식 버전 오류로 인해 아래껏으로 수정: 의미상으로는 동일
+    # target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x>9 else (np.log(target_recipe['review_count']+1)))
+    target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x > 9 else np.log(x + 1))
+
     
     #(np.log(target_recipe['review_count']+2)*1.6)
     
@@ -288,6 +291,7 @@ def get_today_recommend():
 
     # if(switching):
     # md_today = input_random_data(md_today)
+    print(md_today)
     
     target_recipe, table = recommend_today_recipe(md_today)
     # print(target_recipe)
@@ -479,7 +483,6 @@ if __name__ =="__main__":
     model2 = TFBertForMaskedLM.from_pretrained('./recipe_finetuning')
     tokenizer = BertTokenizerFast.from_pretrained("klue/bert-base")
     pip = FillMaskPipeline(model=model2, tokenizer=tokenizer)
-
 
     # 서버 실행
     app.run(use_reloader=False, host='0.0.0.0', port=5000)
