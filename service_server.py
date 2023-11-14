@@ -24,10 +24,6 @@ from datetime import datetime,timedelta
 import time
 from dateutil.relativedelta import relativedelta
 
-from apscheduler.schedulers.background import BackgroundScheduler
-import load_db_data
-import yorizori_recommend_maker
-
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 import json
@@ -39,48 +35,16 @@ CORS(app)
 switching = False #이거 False하고 하면 원본으로 실행될거에요!
 
 
-def save_to_data_import():
-    # csv 데이터베이스에서 요청 후 적용하기
-    try:
-        load_db_data.load_db_data_csv()
-        print("데이터 요청 완료")
-        
-        # predict_matrix.csv 생성하기
-        yorizori_recommend_maker.recommend_maker()
-
-        # user recommend init
-        md = pd.read_csv('./yorizori/recipe_yorizori.csv')
-        df_predict = pd.read_csv('./yorizori_predict/yorizori_predict_matrix.csv')
-        user_info = pd.read_csv('./yorizori_predict/yorizori_user_values.csv')
-        f = open('./yorizori_predict/yorizori_user_index_info.txt','r')
-        df_user = f.readlines()
-
-        # today recommend init
-        md_today = pd.read_csv('./yorizori/recipe_yorizori.csv').drop({'updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','reference_recipe','user_token_id','level','time','version'},axis=1)
-        md_today['created_time']= pd.to_datetime(md_today['created_time'])
-        print("1시간마다 요청")  # 보낸 후에 출력되는 메시지
-
-    except:
-        print("데이터 요청 실패")
-
-
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(save_to_data_import, 'interval', minutes=5)
-scheduler.start()
-
-
-
 # In[243]:
 
 
 def return_recipe_id(recipe_title):
     return md[md['recipe_title']==recipe_title]['recipe_id']
 
-def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_recommendations=5):
+def recommend_recipe(df_svd_preds, df_user, user_id, ori_recipe_df, ori_ratings_df, num_recommendations=5):
     
     #현재는 index로 적용이 되어있으므로 user_id - 1을 해야함.
-   # user_row_number = user_id - 1 
+    # user_row_number = user_id - 1 
     target_user = df_user.index(user_id)
 
     # 최종적으로 만든 pred_df에서 사용자 index에 따라 데이터 정렬 -> 레시피 평점(나중엔 스코어) 높은 순으로 정렬 됌
@@ -95,7 +59,7 @@ def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_r
     user_history.sort_values("values",axis=0, ascending=False)
     
     # 원본 레시피들에서 사용자가 본 메뉴를 제외한 데이터를 추출
-    recommendations = ori_recipe_df#ori_recipe_df[~ori_recipe_df['recipe_id'].isin(user_history['recipe_id'])]
+    recommendations = ori_recipe_df#[~ori_recipe_df['recipe_id'].isin(user_history['recipe_id'])]
     
     alpha = pd.DataFrame(sorted_user_predictions).reset_index().rename(columns={'index':'recipe_id',target_user:'Predictions'})
     alpha=alpha.astype({'recipe_id':'int'})
@@ -104,7 +68,7 @@ def recommend_recipe(df_svd_preds, user_id, ori_recipe_df, ori_ratings_df, num_r
                                             
     # 컬럼 이름 바꾸고 정렬해서 return
     recommendations = recommendations.rename(columns = {user_id: 'Predictions'}).sort_values('Predictions', ascending = False).iloc[:num_recommendations, :]
-                      
+
     
     return user_history, recommendations#alpha
 
@@ -244,10 +208,7 @@ def filtering_today_recipe(md):
 
     target_recipe['date_diff'] = target_recipe['created_time'].apply(lambda x: 0.2*((now-x).days%365) if thisyear.year==x.year else((now-x).days%365 if (now-x).days%365<50 else (x-now).days%365))
 
-    # 표현식 버전 오류로 인해 아래껏으로 수정: 의미상으로는 동일
-    # target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x>9 else (np.log(target_recipe['review_count']+1)))
-    target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x > 9 else np.log(x + 1))
-
+    target_recipe['n_review_count'] = target_recipe['review_count'].apply(lambda x: 1 if x>9 else (np.log(target_recipe['review_count']+1)))
     
     #(np.log(target_recipe['review_count']+2)*1.6)
     
@@ -277,11 +238,43 @@ def recommend_today_recipe(recipe_df):
 def get_recipe_recommend(id):
 
     recommend_userid = id
-    for i in range(len(df_user)):
-        df_user[i]=df_user[i].split("\n")[0]
+
+    target_user_info = user_info_data[user_info_data['user_token_id']==recommend_userid]
+    age = target_user_info.iloc[0]["age"]
+    gender = target_user_info.iloc[0]["gender"]
+
+    switch_nan = 0
+
+    if(str(age)=='nan' or str(gender)=='nan'):
+        df_predict = pd.read_csv('./yorizori_predict/yorizori_predict_matrix.csv')
+        user_info = pd.read_csv('./yorizori_predict/yorizori_user_values.csv')
+        f = open('./yorizori_predict/yorizori_user_index_info.txt','r')
+        df_user = f.readlines()
+        for i in range(len(df_user)):
+            df_user[i]=df_user[i].split("\n")[0]
+        switch_nan = 1
+
+    else: 
+        f = open('./yorizori_predict/yorizori_user_index_info'+str(age)+'_'+str(gender)+'.txt','r')
+        df_user = f.readlines()
+        for i in range(len(df_user)):
+            df_user[i]=df_user[i].split("\n")[0]
+            
+    if switch_nan == 0:
+        if(len(df_user)>3):
+            df_predict = pd.read_csv('./yorizori_predict/yorizori_predict_matrix'+age+'_'+gender+'.csv')
+            user_info = pd.read_csv('./yorizori_predict/yorizori_user_values'+age+'_'+gender+'.csv')
+        else :
+            df_predict = pd.read_csv('./yorizori_predict/yorizori_predict_matrix.csv')
+            user_info = pd.read_csv('./yorizori_predict/yorizori_user_values.csv')
+            f = open('./yorizori_predict/yorizori_user_index_info.txt','r')
+            df_user = f.readlines()
+            for i in range(len(df_user)):
+                df_user[i]=df_user[i].split("\n")[0]
+    
     
     mds=md.drop(['created_time','updated_time','authorship','dish_name','recipe_intro','recipe_thumbnail','user_token_id','reference_recipe','level','time'],axis=1)
-    already_rated, predictions = recommend_recipe(df_predict, recommend_userid, mds, user_info, 50)
+    already_rated, predictions = recommend_recipe(df_predict, df_user, recommend_userid, mds, user_info, 50)
     #예측행렬,예측하는유저id, 레시피테이블 데이터프레임, 유저별 로그 데이터프레임, 몇개추천할지
     return predictions['recipe_id'].to_list()
 
@@ -291,7 +284,6 @@ def get_today_recommend():
 
     # if(switching):
     # md_today = input_random_data(md_today)
-    print(md_today)
     
     target_recipe, table = recommend_today_recipe(md_today)
     # print(target_recipe)
@@ -468,10 +460,13 @@ def get_string_by_templates():
 # In[250]:
 if __name__ =="__main__":
 
+
     # user recommend init
     md = pd.read_csv('./yorizori/recipe_yorizori.csv')
     df_predict = pd.read_csv('./yorizori_predict/yorizori_predict_matrix.csv')
     user_info = pd.read_csv('./yorizori_predict/yorizori_user_values.csv')
+    user_info_data = pd.read_csv('./yorizori/yorizori_user.csv').drop(['created_time','updated_time','image_address','nickname','oauth_division'],axis=1)
+
     f = open('./yorizori_predict/yorizori_user_index_info.txt','r')
     df_user = f.readlines()
 
@@ -483,6 +478,7 @@ if __name__ =="__main__":
     model2 = TFBertForMaskedLM.from_pretrained('./recipe_finetuning')
     tokenizer = BertTokenizerFast.from_pretrained("klue/bert-base")
     pip = FillMaskPipeline(model=model2, tokenizer=tokenizer)
+
 
     # 서버 실행
     app.run(use_reloader=False, host='0.0.0.0', port=5000)
